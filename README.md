@@ -1,4 +1,4 @@
-# Automaton
+# Cellular Automaton
 Samuel Guttormson
 
 The following will generate a cellular automaton using the pygame engine given a simple set of rules.
