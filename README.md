@@ -1,7 +1,7 @@
-# Automaton
+# Cellular Automaton
 Samuel Guttormson
 
-The following will generate an automaton using the pygame engine given a simple set of rules.
+The following will generate a cellular automaton using the pygame engine given a simple set of rules.
 The main variables for the user to play with at this time are:
 
     Cell Grid Size: defined in creation of Automaton object
