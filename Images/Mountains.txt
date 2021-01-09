@@ -1,0 +1,6 @@
+self.revive_cell(image, x+1, y+1)
+self.revive_cell(image, x-1, y+2)
+self.revive_cell(image, x-3, y+2)
+self.kill_cell(image, x-3, y-1)
+
+Using initial state top-mid
