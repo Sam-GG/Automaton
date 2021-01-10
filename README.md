@@ -1,6 +1,8 @@
 # Cellular Automaton
 Samuel Guttormson
 
+Requires: pygame and numpy libraries
+
 The following will generate a cellular automaton using the pygame engine given a simple set of rules.
 The main variables for the user to play with at this time are:
 
