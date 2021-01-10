@@ -106,14 +106,17 @@ class Automaton:
         #DEFINE RULESET HERE
         #alive_cells is a list containing tuples of coordinates for all the currently live cells.
         #Make use of this list and kill and revive cell methods to define your ruleset. Example below:
-
-        for (x, y) in alive_cells:   
+        
+        for (x, y) in alive_cells:  
+            #An Example: 
             # if self.is_within_bounds(x+1, y):
             #     if self.is_alive(image[x+1][y]):
             #         self.revive_cell(image, x+2, y+1)
             # if self.is_within_bounds(x-1, y):
             #     if self.is_alive(image[x-1][y]):
             #         self.revive_cell(image, x-2, y+1)
+
+            #Another example: worms
             if self.dict['counter'] == 3:
                 self.dict['counter'] = 0
             if self.is_within_bounds(x+1, y):
