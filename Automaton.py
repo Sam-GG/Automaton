@@ -166,7 +166,7 @@ def color_function(x, y):
 ######################################
 
 #Create a new Automaton Object
-new_automaton = Automaton(200, 200, color_function)
+new_automaton = Automaton(75, 75, color_function)
 
 #There are three methods to choose from for generating an initial state:
 new_automaton.initialize_with_noise(10)
