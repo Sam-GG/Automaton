@@ -18,7 +18,6 @@ The main variables for the user to play with at this time are:
         current state. Make use of the alive_cells list and revive and kill methods. The 
         shown example rules are very simple and can be made considerably more complex.
 
-    
 """
 
 import random, math, time
@@ -43,7 +42,8 @@ class Automaton:
             'height': h,
             'current_state': np_x,
             'steps': 0,
-            'color_func': color_func 
+            'color_func': color_func,
+            'counter': 0 
         }
 
     def initialize_top_mid(self):
@@ -108,14 +108,24 @@ class Automaton:
         #Make use of this list and kill and revive cell methods to define your ruleset. Example below:
 
         for (x, y) in alive_cells:   
-            if self.is_within_bounds(x, y):
-                self.revive_cell(image, x+1, y)
-                self.revive_cell(image, x, y+1)   
-                self.kill_cell(image, x+2, y)
-                self.kill_cell(image, x, y+2)
-                self.revive_cell(image, x+1, y)
-                self.revive_cell(image, x, y+1)
-                
+            # if self.is_within_bounds(x+1, y):
+            #     if self.is_alive(image[x+1][y]):
+            #         self.revive_cell(image, x+2, y+1)
+            # if self.is_within_bounds(x-1, y):
+            #     if self.is_alive(image[x-1][y]):
+            #         self.revive_cell(image, x-2, y+1)
+            if self.dict['counter'] == 3:
+                self.dict['counter'] = 0
+            if self.is_within_bounds(x+1, y):
+                if self.is_alive(image[x+1][y]):
+                    self.revive_cell(image, x+self.dict['counter'], y+1)
+                    self.dict['counter']+=1
+            if self.is_within_bounds(x-1, y):
+                if self.is_alive(image[x-1][y]):
+                    self.revive_cell(image, x-self.dict['counter'], y-1)
+                    self.kill_cell(image, x+self.dict['counter'], y-2)
+
+
         #time.sleep(1)
         return (image, self.update_steps())
 
@@ -151,18 +161,18 @@ def color_function(x, y):
     """
     #setting a return of 255 defaults automaton to simple black and white (dead and alive)
     #return 255
-    #return abs(math.sin(x+y))*(255)
-    return x+y/abs(random.randint(0, y)+1)
+    return abs(math.sin(x+y+random.randint(0,35)))*(255)
+    #return x+y/abs(random.randint(0, y)+1)
 ######################################
 
 #Create a new Automaton Object
 new_automaton = Automaton(200, 200, color_function)
 
 #There are three methods to choose from for generating an initial state:
-new_automaton.initialize_with_noise(20)
+new_automaton.initialize_with_noise(10)
 #new_automaton.initialize_middle()
 #new_automaton.initialize_top_mid()
 
 #Initializes the pygame viewer object and starts
-viewer = Viewer(new_automaton.update, (800, 800))
+viewer = Viewer(new_automaton.update, (700, 700))
 viewer.start()
