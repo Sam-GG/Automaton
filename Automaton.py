@@ -97,38 +97,34 @@ class Automaton:
         This is where rulesets are created.
         """
         image = self.dict['current_state']
-        alive_cells = []
         
         for (x, y), element in np.ndenumerate(image):
             if self.is_alive(element):
-                alive_cells.append((x, y))
-        ###
-        #DEFINE RULESET HERE
-        #alive_cells is a list containing tuples of coordinates for all the currently live cells.
-        #Make use of this list and kill and revive cell methods to define your ruleset. Example below:
+                ###
+                #DEFINE RULESET HERE
+                #alive_cells is a list containing tuples of coordinates for all the currently live cells.
+                #Make use of this list and kill and revive cell methods to define your ruleset. Example below:
+
+                #An Example: 
+                # if self.is_within_bounds(x+1, y):
+                #     if self.is_alive(image[x+1][y]):
+                #         self.revive_cell(image, x+2, y+1)
+                # if self.is_within_bounds(x-1, y):
+                #     if self.is_alive(image[x-1][y]):
+                #         self.revive_cell(image, x-2, y+1)
+
+                #Another example: worms
+                if self.dict['counter'] == 3:
+                    self.dict['counter'] = 0
+                if self.is_within_bounds(x+1, y):
+                    if self.is_alive(image[x+1][y]):
+                        self.revive_cell(image, x+self.dict['counter'], y+1)
+                        self.dict['counter']+=1
+                if self.is_within_bounds(x-1, y):
+                    if self.is_alive(image[x-1][y]):
+                        self.revive_cell(image, x-self.dict['counter'], y-1)
+                        self.kill_cell(image, x+self.dict['counter'], y-2)
         
-        for (x, y) in alive_cells:  
-            #An Example: 
-            # if self.is_within_bounds(x+1, y):
-            #     if self.is_alive(image[x+1][y]):
-            #         self.revive_cell(image, x+2, y+1)
-            # if self.is_within_bounds(x-1, y):
-            #     if self.is_alive(image[x-1][y]):
-            #         self.revive_cell(image, x-2, y+1)
-
-            #Another example: worms
-            if self.dict['counter'] == 3:
-                self.dict['counter'] = 0
-            if self.is_within_bounds(x+1, y):
-                if self.is_alive(image[x+1][y]):
-                    self.revive_cell(image, x+self.dict['counter'], y+1)
-                    self.dict['counter']+=1
-            if self.is_within_bounds(x-1, y):
-                if self.is_alive(image[x-1][y]):
-                    self.revive_cell(image, x-self.dict['counter'], y-1)
-                    self.kill_cell(image, x+self.dict['counter'], y-2)
-
-
         #time.sleep(1)
         return (image, self.update_steps())
 
@@ -169,7 +165,7 @@ def color_function(x, y):
 ######################################
 
 #Create a new Automaton Object
-new_automaton = Automaton(75, 75, color_function)
+new_automaton = Automaton(100, 100, color_function)
 
 #There are three methods to choose from for generating an initial state:
 new_automaton.initialize_with_noise(10)
@@ -177,5 +173,5 @@ new_automaton.initialize_with_noise(10)
 #new_automaton.initialize_top_mid()
 
 #Initializes the pygame viewer object and starts
-viewer = Viewer(new_automaton.update, (700, 700))
+viewer = Viewer(new_automaton.update, (800, 800))
 viewer.start()
