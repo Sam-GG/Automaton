@@ -96,6 +96,7 @@ class Automaton:
         Determines what the next state will look like given the current state
         This is where rulesets are created.
         """
+        image_copy = self.dict['current_state'].copy()
         image = self.dict['current_state']
         
         for (x, y), element in np.ndenumerate(image):
@@ -108,25 +109,32 @@ class Automaton:
                 #An Example: 
                 # if self.is_within_bounds(x+1, y):
                 #     if self.is_alive(image[x+1][y]):
-                #         self.revive_cell(image, x+2, y+1)
+                #         self.kill_cell(image_copy, x+2, y+1)
                 # if self.is_within_bounds(x-1, y):
                 #     if self.is_alive(image[x-1][y]):
-                #         self.revive_cell(image, x-2, y+1)
+                #         self.kill_cell(image_copy, x-2, y+1)
+                # if self.is_within_bounds(x, y):
+                #     if self.is_alive(image[x][y]):
+                #         self.revive_cell(image_copy, x, y+1)
+                # if self.is_within_bounds(x, y):
+                #     if self.is_alive(image[x][y]):
+                #         self.revive_cell(image_copy, x+1, y+1)
 
                 #Another example: worms
                 if self.dict['counter'] == 3:
                     self.dict['counter'] = 0
                 if self.is_within_bounds(x+1, y):
                     if self.is_alive(image[x+1][y]):
-                        self.revive_cell(image, x+self.dict['counter'], y+1)
+                        self.revive_cell(image_copy, x+self.dict['counter'], y+1)
                         self.dict['counter']+=1
                 if self.is_within_bounds(x-1, y):
                     if self.is_alive(image[x-1][y]):
-                        self.revive_cell(image, x-self.dict['counter'], y-1)
-                        self.kill_cell(image, x+self.dict['counter'], y-2)
+                        self.revive_cell(image_copy, x-self.dict['counter'], y-1)
+                        self.kill_cell(image_copy, x+self.dict['counter'], y-2)
         
+        self.dict['current_state'] = image_copy
         #time.sleep(1)
-        return (image, self.update_steps())
+        return (image_copy, self.update_steps())
 
     def update_steps(self):
         self.dict['steps'] +=1
@@ -169,7 +177,7 @@ new_automaton = Automaton(100, 100, color_function)
 
 #There are three methods to choose from for generating an initial state:
 new_automaton.initialize_with_noise(10)
-#new_automaton.initialize_middle()
+# new_automaton.initialize_middle()
 #new_automaton.initialize_top_mid()
 
 #Initializes the pygame viewer object and starts
