@@ -2,7 +2,7 @@
 Samuel Guttormson
 Initial Upload Date: Jan 8th 2021
 
-The following will generate automaton using the pygame engine given a simple set of rules.
+The following will generate evolving automaton using the pygame engine given a simple set of rules.
 The main variables for the user to play with at this time are:
 
     Cell Grid Size: defined in creation of Automaton object
@@ -14,164 +14,203 @@ The main variables for the user to play with at this time are:
 
     color_function(x, y): a mathematical function to determine cell colors
 
-    update(): a method that determines what the next state will look like based on the
-        current state. Make use of the alive_cells list and revive and kill methods. The 
-        shown example rules are very simple and can be made considerably more complex.
+    rulesets(): a method called by update() that determines what the next state will look like based on the
+        current state and a set of rules. General idea is to use indexing and the helper methods.
 
 """
 
 import random, math, time
 import numpy as np
-
+# Viewer is a small helper class that drives the pygame renderer
 from Viewer import Viewer
+
 class Automaton:
-    def __init__(self, w, h, color_func):
+    def __init__(self, w, h, color_func, ruleset):
         """
-        :params w, h: respective width and height of cell grid
+        :param w: respective width of cell grid
+        :param h: respective height of cell grid
+        :param color_func: a function that determines the color of a cell
+        :param ruleset: a string that determines the ruleset to be used
         :return: A new Automaton object
         """
-        #self.initial_state = np.random.random((20, 20, 3)) *255 
-        #self.current_state = self.initial_state
 
         #Initialize a 2d array of w*h size with 0's (empty cell grid)
         x = [[0 for i in range(w)] for j in range(h)]
         np_x = np.array(x)
 
-        self.dict = {
-            'width': w,
-            'height': h,
-            'current_state': np_x,
-            'steps': 0,
-            'color_func': color_func,
-            'counter': 0 
-        }
+        # initialization of the Automaton objects' fields
+        self.width = w 
+        self.height = h
+        self.current_state = np_x
+        self.steps = 0
+        self.color_func = color_func
+        self.ruleset = ruleset
+
+        # counter is an optional feature that can be used in creation of rulesets. "worms" example demonstrates this.
+        self.counter = 0 
 
     def initialize_top_mid(self):
         """
         Initializes cell grid to have one living cell top-mid.
         """
-        self.dict['current_state'][int((self.dict['width'])/2)][0] = 255
+        self.current_state[int((self.width)/2)][0] = 255
         
     def initialize_middle(self):
         """
         Initializes cell grid to have one living cell in the middle.
         """
-        self.dict['current_state'][int((self.dict['width'])/2)][int((self.dict['height'])/2)] = 255
+        self.current_state[int((self.width)/2)][int((self.height)/2)] = 255
 
     def initialize_with_noise(self, intensity):
         """
-        Initializes cell grid with random noise
         :param intensity: An integer value that scales how many random cells should be revived.
-        Smaller intensity value means more live cells.
+
+        Initializes cell grid with random noise. Smaller intensity value means more live cells.
         """
         #A list containing the two choices, alive or dead
         r = [0, 255]
         #The more zeros added from intensity, the more dead cells
         for i in range(intensity):
             r.append(0)
-        image = self.dict['current_state']
-        for (x, y), element in np.ndenumerate(image):
-            image[x][y] = random.choice(r)
+
+        for (x, y), element in np.ndenumerate(self.current_state):
+            self.current_state[x][y] = random.choice(r)
 
 
-    def is_alive(self, cell):
+    def is_alive(self, x, y):
         """
-        :param cell: A single cell value from the state grid
+        :param x: x-coordinate of cell
+        :param y: y-coordinate of cell
         :returns: True if cell is alive and otherwise false 
         """
-        if (cell > 0): return True
-        else: return False 
+        if self.is_within_bounds(x, y):
+            if (self.current_state[x][y] > 0): return True
+            else: return False 
 
     def is_within_bounds(self, x, y):
         """
-        Determines if x and y are within the bounds of the cellular grid
-        :params x, y: x and y index values
+        :param x: x-coordinate of cell
+        :param y: y-coordinate of cell
         :returns: True if index values are not out of bounds
+
+        Determines if x and y are within the bounds of the cellular grid.
         """
-        if x in range(0, self.dict['width']) and y in range(0, self.dict['height']):
+        if 0 <= x < self.width and 0 <= y < self.height:
             return True
 
     def update(self):
         """
         Determines what the next state will look like given the current state
-        This is where rulesets are created.
+        This is where rulesets are executed.
         """
-        image = self.dict['current_state']
+        # We create a copy of the current state so that our decisions are not affected by our modifications
+        state_copy = self.current_state.copy()
         
-        for (x, y), element in np.ndenumerate(image):
-            if self.is_alive(element):
-                ###
-                #DEFINE RULESET HERE
-                #alive_cells is a list containing tuples of coordinates for all the currently live cells.
-                #Make use of this list and kill and revive cell methods to define your ruleset. Example below:
+        for (x, y), element in np.ndenumerate(self.current_state):
+            if self.is_alive(x, y):
+                self.rulesets(x, y, element, state_copy, self.ruleset)
 
-                #An Example: 
-                # if self.is_within_bounds(x+1, y):
-                #     if self.is_alive(image[x+1][y]):
-                #         self.revive_cell(image, x+2, y+1)
-                # if self.is_within_bounds(x-1, y):
-                #     if self.is_alive(image[x-1][y]):
-                #         self.revive_cell(image, x-2, y+1)
+        self.current_state = state_copy
+        return (state_copy, self.update_steps())
 
-                #Another example: worms
-                if self.dict['counter'] == 3:
-                    self.dict['counter'] = 0
-                if self.is_within_bounds(x+1, y):
-                    if self.is_alive(image[x+1][y]):
-                        self.revive_cell(image, x+self.dict['counter'], y+1)
-                        self.dict['counter']+=1
-                if self.is_within_bounds(x-1, y):
-                    if self.is_alive(image[x-1][y]):
-                        self.revive_cell(image, x-self.dict['counter'], y-1)
-                        self.kill_cell(image, x+self.dict['counter'], y-2)
-        
-        #time.sleep(1)
-        return (image, self.update_steps())
+    def rulesets(self, x, y, element, state, ruleset):
+        """ 
+        :param x: x-coordinate of the cell
+        :param y: y-coordinate of the cell
+        :param element: the value of the cell at x, y
+        :param state: a reference to a copy of the current state of the cell grid.
+
+        A couple of example rulesets.
+        """        
+        # match-case would be nice here, but its a 3.10 feature (very new) so i'll use conditionals
+        if ruleset == "lanes":
+            if self.is_alive(x+1, y):
+                self.kill_cell(state, x+2, y+1)
+            if self.is_alive(x-1, y):
+                self.kill_cell(state, x-2, y+1)
+            self.revive_cell(state, x, y+1) 
+            self.revive_cell(state, x+1, y+1)
+
+        # Another example: worms
+        elif ruleset == "worms":
+            if self.counter == 4:
+                self.counter = 0
+            if self.is_alive(x+1, y):
+                self.revive_cell(state, x+self.counter, y+1)
+                self.counter+=1
+            if self.is_alive(x-1, y):
+                self.revive_cell(state, x-self.counter, y-1)
+                self.kill_cell(state, x+self.counter, y-2)
+
+        # Another example: a falling 3D plane. Use initialize_top_mid() for it to look as described.
+        elif ruleset == "plane":
+            self.revive_cell(state, x, y+1)
+            self.kill_cell(state, x, y-2)
+            self.revive_cell(state, x+2, y)
+            self.revive_cell(state, x-2, y)
+            self.kill_cell(state, x-2, y+1)
+            
+        else:
+            print("No ruleset found for:", ruleset)
 
     def update_steps(self):
-        self.dict['steps'] +=1
-        return self.dict['steps']
-
-    def revive_cell(self, image, x, y):
         """
-        Play god and bring the specified cell back from the dead
-        :param image: a reference to a cell grid to modify
-        :params x, y: x and y coordinates of the dead cell in the provided cell grid
+        Increments and returns step count.
+        """
+        self.steps +=1
+        return self.steps
+
+    def revive_cell(self, state, x, y):
+        """
+        :param state: a reference to a cell grid to modify
+        :params x: x-coordinate of cell
+        :params y: y-coordinate of cell
+
+        Bring the specified cell back from the dead.
         """
         if self.is_within_bounds(x, y):
-            image[x][y] = self.dict['color_func'](x, y)
+            state[x][y] = self.color_func(x, y)
                 
-    def kill_cell(self, image, x, y):
+    def kill_cell(self, state, x, y):
         """
-        Kills the specified cell 
-        :param image: a reference to a cell grid to modify
-        :params x, y: x and y coordinates of the living cell in the provided cell grid
+        :param state: a reference to a cell grid to modify
+        :param x: x-coordinate of cell
+        :param y: y-coordinate of cell
+
+        Kills the specified cell. 
         """
         if self.is_within_bounds(x, y):
-            image[x][y] = 0
+            state[x][y] = 0
 
-
-######################################
-#DEFINE COLOR ASSIGNMENT FUNCTION HERE
+# color function is defined outside of the class, so that it can be provided by the user.
+# This is an example I've made with a few interesting options.
 def color_function(x, y):
     """
     Pass a mathematical function optionally using x and y to
     generate a color value from 0-255
     """
-    #setting a return of 255 defaults automaton to simple black and white (dead and alive)
-    #return 255
-    return abs(math.sin(x+y+random.randint(0,35)))*(255)
-    #return x+y/abs(random.randint(0, y)+1)
-######################################
+    # change the color function here from the list of options
+    color_func_name = "color_block"
 
-#Create a new Automaton Object
-new_automaton = Automaton(100, 100, color_function)
+    options = {
+        "white": lambda x, y: 255,
+        "red": lambda x, y: 100,
+        "green": lambda x, y: 25,
+        "blue": lambda x, y: 10,
+        "rainbow": lambda x, y: abs(math.sin(x+y+random.randint(0,35)))*(255),
+        "color_block": lambda x, y: x+y/abs(random.randint(0, y)+1)
+    }
+    return options[color_func_name](x, y)
 
-#There are three methods to choose from for generating an initial state:
-new_automaton.initialize_with_noise(10)
-#new_automaton.initialize_middle()
-#new_automaton.initialize_top_mid()
+
+# Create a new Automaton Object
+new_automaton = Automaton(200, 200, color_function, "lanes")
+
+# There are three methods to choose from for generating an initial state. 
+# The example rulesets are crafted with the random noise method in mind.
+new_automaton.initialize_with_noise(35)
+# new_automaton.initialize_top_mid()  # use if you use ruleset "plane"
 
 #Initializes the pygame viewer object and starts
-viewer = Viewer(new_automaton.update, (800, 800))
+viewer = Viewer(new_automaton.update, (750, 750))
 viewer.start()

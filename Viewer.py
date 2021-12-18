@@ -24,9 +24,10 @@ class Viewer:
                 if event.type == pygame.QUIT:
                     running = False
 
-            #Render steps text, passed as a tuple from update func in Automaton
-            steps = self.update_func()[1]     
-            Z = self.update_func()[0]
+            # Call update function, fetch new image state and step count
+            Z, steps, = self.update_func()   
+
+            #Renders "steps" text
             textsurface = myfont.render(('Steps: '+ str(steps)), False, (255, 255, 00))
             textshadow = myfont.render(('Steps: '+ str(steps)), False, (0, 0, 0))
             
