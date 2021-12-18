@@ -15,6 +15,6 @@ The main variables for the user to play with at this time are:
 
     color_function(x, y): a mathematical function to determine cell colors
 
-    update(): a method that determines what the next state will look like based on the
-        current state. Make use of the alive_cells list and revive and kill methods. The 
-        shown example rules are very simple and can be made considerably more complex.
+    rulesets(): a method called by update() that determines what the next state will look like based on the
+        current state and a set of rules. General idea is to use indexing and the helper methods.
+
